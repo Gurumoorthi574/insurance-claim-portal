@@ -25,6 +25,8 @@ const Signup = () => {
     firstName: '',
     lastName: '',
     email: '',
+    userId: '',
+    userType: '',
     password: '',
     confirmPassword: ''
   });
@@ -34,7 +36,14 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setSignupForm({ ...signupForm, [e.target.name]: e.target.value });
+    // setSignupForm({ ...signupForm, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let updateForm ={...signupForm, [name]: value};
+    if (name === 'emailId') {
+      const userId = value.includes('@') ? value.split('@')[0] : value;
+      updateForm.userId = userId;
+    }
+    setSignupForm(updateForm);
   };
 
   const handleSubmit = async (e) => {
@@ -111,6 +120,7 @@ const Signup = () => {
               onChange={handleChange}
               value={signupForm.lastName}
             />
+            
             <input
               type="email"
               name="emailId"
@@ -119,6 +129,66 @@ const Signup = () => {
               onChange={handleChange}
               value={signupForm.emailId}
             />
+            <input
+              type="text"
+              name="userid"
+              placeholder='NT ID'
+              className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
+              value={signupForm.userId}
+              readOnly
+            />
+            {/* <select
+              name="userType"
+              placeholder="User Type"
+              className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
+              onChange={handleChange}
+              value={signupForm.userType}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select> */}
+            <div className="flex items-center space-x-6 mb-4">
+              <label className="flex items-center cursor-pointer">
+                <span
+                  className={`w-4 h-4 flex items-center justify-center rounded-full mr-2 transition-all
+                    shadow-[inset_2px_2px_6px_#cbd5e1,inset_-2px_-2px_4px_#ffffff]
+                    ${signupForm.userType === "user" ? "bg-cyan-100 ring-2 ring-cyan-400" : "bg-slate-100"}`}
+                >
+                  <input
+                    type="radio"
+                    name="userType"
+                    value="user"
+                    checked={signupForm.userType === "user"}
+                    onChange={handleChange}
+                    className="appearance-none w-4 h-4 rounded-full bg-transparent checked:bg-cyan-500 checked:shadow-[0_0_0_6px_#e0f2fe] focus:outline-none"
+                  />
+                  {signupForm.userType === "user" && (
+                    <span className="absolute w-3 h-3 bg-cyan-500 rounded-full"></span>
+                  )}
+                </span>
+                <span className="text-slate-700 font-medium">User</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <span
+                  className={`w-4 h-4 flex items-center justify-center rounded-full mr-2 transition-all
+                    shadow-[inset_2px_2px_6px_#cbd5e1,inset_-2px_-2px_6px_#ffffff]
+                    ${signupForm.userType === "admin" ? "bg-cyan-100 ring-2 ring-cyan-400" : "bg-slate-100"}`}
+                >
+                  <input
+                    type="radio"
+                    name="userType"
+                    value="admin"
+                    checked={signupForm.userType === "admin"}
+                    onChange={handleChange}
+                    className="appearance-none w-4 h-4 rounded-full bg-transparent checked:bg-cyan-500 checked:shadow-[0_0_0_4px_#e0f2fe] focus:outline-none"
+                  />
+                  {signupForm.userType === "admin" && (
+                    <span className="absolute w-3 h-3 bg-cyan-500 rounded-full"></span>
+                  )}
+                </span>
+                <span className="text-slate-700 font-medium">Admin</span>
+              </label>
+            </div>
             <input
               type="password"
               name="password"

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const userprofileSchema = new mongoose.Schema({
+const usermanagementSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
@@ -9,6 +9,18 @@ const userprofileSchema = new mongoose.Schema({
     lastName: {
         type: String,
         required: true,
+        trim: true
+    },
+    userType: {
+        type: String,
+        required: true,
+        enum: ['admin', 'user'], // Example user types
+        default: ''
+    },
+    userId: {
+        type: String,
+        required: true,
+        unique: true,
         trim: true
     },
     emailId: {
@@ -23,4 +35,4 @@ const userprofileSchema = new mongoose.Schema({
         required: true
     }
 }, { timestamps: true });
-module.exports = mongoose.model('userprofile', userprofileSchema);
+module.exports = mongoose.model('usermanagement', usermanagementSchema);

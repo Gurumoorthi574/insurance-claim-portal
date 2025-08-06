@@ -13,11 +13,12 @@ var cors = require('cors');
 var usersRouter = require('./routes/users');
 var loginRouter = require('./routes/login');
 var signupRouter = require('./routes/Signup');
-var saveDataRouter = require('./routes/saveData');; // Ensure this route is defined
-var claimStatusRouter = require('./routes/fetch/claim_status'); // Ensure this route is defined
-var dashboardRouter = require('./routes/fetch/dashboard'); // Ensure this route is defined
-var claimRouter = require('./routes/fetch/claim'); // Ensure this route is defined
-var claimHistoryRouter = require('./routes/fetch/claim_history'); // Ensure this route is defined
+var saveDataRouter = require('./routes/saveData');
+var claimStatusRouter = require('./routes/fetch/claim_status');
+var dashboardRouter = require('./routes/fetch/dashboard');
+var claimRouter = require('./routes/fetch/claim');
+var claimHistoryRouter = require('./routes/fetch/claim_history');
+var tokenVerifyRouter = require('./routes/token_verify');
 
 
 
@@ -52,6 +53,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/users', usersRouter);
 app.use('/api/auth/login', loginRouter);
 app.use('/api/auth/signup', signupRouter);
+app.use('/api/auth/token', tokenVerifyRouter);
 app.use('/api/saveData', saveDataRouter);
 app.use('/api/fetch/claim_status', claimStatusRouter);
 app.use('/api/fetch/dashboard', dashboardRouter);

@@ -1,19 +1,21 @@
 import { createBrowserRouter } from 'react-router'
 import Login from "../LoginPage/Login"
 import Signup from "../LoginPage/Signup"
-import Dashboard from '../Dashboard'
+import Dashboard from '../FormComponent/Dashboard'
 import { InsuranceStepper } from '../Stepper/claim_stepper'
 import ClaimHistory from '../History/ClaimHistory'
+import { tokenVerificationLoader } from '../AuthVerification/authloader'
+
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: Login
+    Component: Login,
   },
   {
     path: "/login",
-    Component: Login
+    Component: Login,
   },
   {
     path: "/signup",
@@ -21,7 +23,8 @@ const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    Component: Dashboard
+    Component: Dashboard,
+    loader: tokenVerificationLoader
   },
   {
     path: "/stepper",
@@ -37,4 +40,4 @@ const router = createBrowserRouter([
   }
 ]) 
 
-export default router
+export default router;
