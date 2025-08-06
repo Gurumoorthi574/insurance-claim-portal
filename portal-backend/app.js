@@ -51,9 +51,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/api/auth', tokenVerifyRouter);
 app.use('/api/auth/login', loginRouter);
 app.use('/api/auth/signup', signupRouter);
-app.use('/api/auth/token', tokenVerifyRouter);
 app.use('/api/saveData', saveDataRouter);
 app.use('/api/fetch/claim_status', claimStatusRouter);
 app.use('/api/fetch/dashboard', dashboardRouter);
