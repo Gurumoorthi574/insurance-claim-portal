@@ -1,12 +1,10 @@
-import { createBrowserRouter } from 'react-router'
-import Login from "../LoginPage/Login"
-import Signup from "../LoginPage/Signup"
-import Dashboard from '../FormComponent/Dashboard'
-import { InsuranceStepper } from '../Stepper/claim_stepper'
-import ClaimHistory from '../History/ClaimHistory'
-import { tokenVerificationLoader } from '../AuthVerification/authloader'
-
-
+import { createBrowserRouter } from 'react-router-dom';
+import Login from "../LoginPage/Login";
+import Signup from "../LoginPage/Signup";
+import Dashboard from '../FormComponent/Dashboard';
+import { InsuranceStepper } from '../Stepper/claim_stepper';
+import ClaimHistory from '../History/ClaimHistory';
+import { tokenVerificationLoader } from '../AuthVerification/authloader';
 
 const router = createBrowserRouter([
   {
@@ -15,7 +13,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/login",
-    Component: Login,
+    Component: Login
   },
   {
     path: "/signup",
@@ -28,16 +26,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/stepper",
-    Component: InsuranceStepper
+    Component: InsuranceStepper,
+    loader: tokenVerificationLoader
   },
   {
     path: "/stepper/:claimId", 
-    Component: InsuranceStepper
+    Component: InsuranceStepper,
+    loader: tokenVerificationLoader
   },
   {
     path: "/history",
-    Component: ClaimHistory
+    Component: ClaimHistory,
+    loader: tokenVerificationLoader
   }
-]) 
+]);
 
 export default router;

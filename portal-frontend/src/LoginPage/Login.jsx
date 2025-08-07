@@ -1,42 +1,29 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { NavLink } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Toaster, toast } from 'react-hot-toast';
 import { Button, Input } from "@material-tailwind/react";
 
-// Notification component for bottom-center popup
-const Notification = ({ message, onClose }) => {
-  if (!message) return null;
-  return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-2 rounded shadow-lg flex items-center">
-      <span>{message}</span>
-      <button
-        className="ml-4 text-white font-bold"
-        onClick={onClose}
-        aria-label="Close"
-      >
-        ×
-      </button>
-    </div>
-  );
-};
-
 const Login = () => {
-  const [loginType, setLoginType] = useState('admin'); // 'admin' or 'client'
-  const [loginForm, setLoginForm] = useState({ userId: '', emailId: '', password: '' });
-  const [error, setError] = useState('');
+  const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [loginType, setLoginType] = useState('admin');
+  const [loginForm, setLoginForm] = useState({ userId: '', emailId: '', password: '' });
 
+  // This effect runs once on mount to show any errors passed from other pages.
   useEffect(() => {
+    const error = location.state?.error || searchParams.get('error');
     if (error) {
-      const timer = setTimeout(() => setError(''), 3000);
-      return () => clearTimeout(timer);
+      toast.error(error);
+      // Clean up URL and state to prevent re-showing toast on refresh
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('error');
+      navigate(
+        { pathname: location.pathname, search: newSearchParams.toString() },
+        { replace: true, state: {} } // Clear location state
+      );
     }
-  }, [error]);
-
-  useEffect(() => {
-    setError('');
   }, []);
 
   const handleChange = (e) => {
@@ -53,7 +40,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    // setError('');
     try {
       // Choose payload and endpoint based on loginType
       let payload, endpoint;
@@ -68,22 +55,33 @@ const Login = () => {
         withCredentials: true,
       });
       if (response.status === 200 && response.data.success) {
+        toast.success('Login successful!');
         navigate('/dashboard');
-        // console.log('Login successful:', response.data);
+        
       } else {
-        setError(response.data.message || 'Login failed. Please check your credentials.');
+        toast.error(response.data.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError(
-        err.response?.data || 'Login failed. Please check your credentials.'
-      );
+      const errorMessage = err.response?.data?.message || err.response?.data || 'Login failed. Please check your credentials.';
+      toast.error(errorMessage);
       console.error('Login error:', err);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-100">
-      <Notification message={error} onClose={() => setError('')} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          success: {
+            style: {
+              background: '#22c55e',
+              color: 'white',
+            },
+          },
+          error: { style: { background: '#dc2626', color: 'white' } },
+        }}
+      />
       {/* Left Image Side */}
       <div className="md:w-1/2 hidden md:block">
         <img
@@ -123,6 +121,7 @@ const Login = () => {
                 <Input
                   type="text"
                   name="userId"
+                  autoComplete="username"
                   placeholder="User ID"
                   className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
                   onChange={handleChange}
@@ -131,6 +130,7 @@ const Login = () => {
                 <Input
                   type="password"
                   name="password"
+                  autoComplete="current-password"
                   placeholder="Password"
                   className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
                   onChange={handleChange}
@@ -142,6 +142,7 @@ const Login = () => {
                 <Input
                   type="email"
                   name="emailId"
+                  autoComplete="username"
                   placeholder="Email ID"
                   className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
                   onChange={handleChange}
@@ -150,6 +151,7 @@ const Login = () => {
                 <Input
                   type="password"
                   name="password"
+                  autoComplete="current-password"
                   placeholder="Password"
                   className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
                   onChange={handleChange}

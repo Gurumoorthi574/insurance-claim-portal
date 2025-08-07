@@ -1,8 +1,10 @@
 import axios from 'axios';
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { Toaster, toast } from 'react-hot-toast';
 
 function Dashboard() {
+  let endpoint = 'http://localhost:3000/api/fetch/dashboard';
   const [count, setCount] = React.useState({
     pendingCount: 0,
     approvedCount: 0,
@@ -12,7 +14,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-  axios.get('http://localhost:3000/api/fetch/dashboard', {
+  axios.get(endpoint, {
     withCredentials: true,
   })
   .then(response => {
@@ -25,9 +27,10 @@ function Dashboard() {
     });
   })
   .catch(error => {
-    console.error('Error fetching dashboard data:', error);
-    if (error.response && error.response.status === 401) {
-      navigate('/login');
+    if (error.response?.status === 401) {
+      // Token is invalid or expired. Clear cookie and redirect to login.
+      // document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      navigate('/login', { state: { error: 'Your session has expired. Please log in again.' } });
     }
   });
   }, [navigate]);
@@ -48,10 +51,9 @@ function Dashboard() {
   const navigateToNewClaimStepper = () => navigate('/stepper'); // For new claims
   const navigateToClaimHistory = () => navigate('/history'); // For claim history
 
-
-
   return (
     <div className="flex h-screen font-sans bg-slate-100">
+      <Toaster position="top-right" />
       {/* Sidebar */}
       <aside className="w-64 bg-slate-100 text-slate-700 flex flex-col p-6 shadow-[8px_0px_16px_#cbd5e1] z-10">
         <h1 className="text-3xl font-bold mb-12 text-cyan-700">GH INSURANCE</h1>

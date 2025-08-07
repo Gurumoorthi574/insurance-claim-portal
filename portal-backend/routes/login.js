@@ -4,9 +4,6 @@ const jwt = require('jsonwebtoken');
 const usermanagement = require('../models/userslogin');
 const bcrypt = require('bcrypt');
 
-
-const app = express();
-const port = 3000;
 const jwtSecret = process.env.JWT_SECRET || 'default_dev_secret';
 
 router.post('/', async (req, res) => {
@@ -45,7 +42,7 @@ router.post('/', async (req, res) => {
             return res.status(400).send('Invalid credentials');
         }
 
-        const token = jwt.sign({ u_id: user.userId }, jwtSecret, { expiresIn: '30m' });
+        const token = jwt.sign({ u_id: user.userId }, jwtSecret, { expiresIn: '15m' });
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
