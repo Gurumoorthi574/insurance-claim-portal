@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 // Notification component for top-right popup
@@ -53,10 +54,12 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/signup', signupForm);
+      let signin ='http://localhost:3000/api/auth/signup'
+      const response = await axios.post(signin, signupForm);
       if (response.status === 201) {
-        setSuccess('Signup successful! Please log in.');
+        toast.setSuccess('Successfully Register! Please log in.')
         if (response.data === 'Success') {
+          // localStorage.setItem('u_type',userType)
           navigate('/login');
         }
         setSignupForm({

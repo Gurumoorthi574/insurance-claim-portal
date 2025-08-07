@@ -7,6 +7,8 @@ export const tokenVerificationLoader = async () => {
     const response = await axios.get(endpoint, {
       withCredentials: true,
     });
+    localStorage.setItem('userId', response.data.userId.u_id);
+    localStorage.setItem('lastlogin', response.data.userId.iat);
     return {
       isAuthenticated: true,
       userType: response.data.userType,

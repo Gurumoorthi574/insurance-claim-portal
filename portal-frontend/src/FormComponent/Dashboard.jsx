@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 
+
 function Dashboard() {
   let endpoint = 'http://localhost:3000/api/fetch/dashboard';
   const [count, setCount] = React.useState({
@@ -10,8 +11,15 @@ function Dashboard() {
     approvedCount: 0,
     rejectedCount: 0,
   });
+  // const [user, setUser] = useState({ name: 'Gurumoorthi', iat: '' });
   const [dasboardData, setDasboardData] = React.useState([]);
   const navigate = useNavigate();
+  const userId = localStorage.getItem('U_Id');
+  const username = localStorage.getItem('Username')
+  const lastname = localStorage.getItem('Initial')
+  const userEmail = localStorage.getItem('U_email');
+  const lastLogin = localStorage.getItem('lastlogin');
+  const type = localStorage.getItem('U_type');
 
   useEffect(() => {
   axios.get(endpoint, {
@@ -19,21 +27,31 @@ function Dashboard() {
   })
   .then(response => {
     const responseData = response.data;
-    setDasboardData(responseData.data || []);
-    setCount({
-      pendingCount: responseData.pendingCount || 0,
-      approvedCount: responseData.approvedCount || 0,
-      rejectedCount: responseData.rejectedCount || 0,
-    });
+    // The dashboard API can be a secondary source for the user's email.
+    // Using the `U_email` key for consistency with the login component.
+    const claims = responseData.data || [];
+    // If the user is an admin, only show claims with a 'Pending' status.
+    if (type === 'admin') {
+      setDasboardData(claims);
+    } else if (type === 'user') {
+      // For regular users, only show claims that belong to them and are approved.
+      const userClaims = claims.filter(claim => claim.emailAddress === userEmail);
+      setDasboardData(userClaims.filter(claim => claim.status === 'Approved'));
+      // For users, calculate counts based on their own claims.
+      setCount({
+        pendingCount: userClaims.filter(c => c.status === 'Pending').length,
+        approvedCount: userClaims.filter(c => c.status === 'Approved').length,
+        rejectedCount: userClaims.filter(c => c.status === 'Rejected').length,
+      });
+    }
   })
   .catch(error => {
     if (error.response?.status === 401) {
-      // Token is invalid or expired. Clear cookie and redirect to login.
-      // document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       navigate('/login', { state: { error: 'Your session has expired. Please log in again.' } });
     }
   });
-  }, [navigate]);
+  }, [type, userEmail, navigate, endpoint]);
+
   const statusColor = {
     Pending: "text-yellow-600",
     Approved: "text-green-600",
@@ -65,13 +83,15 @@ function Dashboard() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 12v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h2a1 1 0 001-1V9M9 21h6"></path></svg>
             Dashboard
           </button>
-          <button 
-            className="flex items-center bg-slate-100 text-slate-700 hover:text-cyan-600 px-4 py-3 rounded-xl text-left shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"
-            onClick={navigateToNewClaimStepper}
-          >
-            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Submit Claim
-          </button>
+          {type !== 'admin' && (
+            <button 
+              className="flex items-center bg-slate-100 text-slate-700 hover:text-cyan-600 px-4 py-3 rounded-xl text-left shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"
+              onClick={navigateToNewClaimStepper}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Submit Claim
+            </button>
+          )}
           <button 
             className="flex items-center bg-slate-100 text-slate-700 hover:text-cyan-600 px-4 py-3 rounded-xl text-left shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"
             onClick={navigateToClaimHistory}
@@ -89,12 +109,16 @@ function Dashboard() {
         </nav>
       </aside>
 
-      <main className="flex-1 bg-slate-100 p-10 flex flex-col overflow-y-auto">
+      <main className="flex-1 bg-slate-100 p-7 flex flex-col overflow-y-auto">
         {/* Header */}
         <div className='flex justify-between items-center mb-8'>
-            <h2 className='text-3xl font-semibold text-slate-800'>Welcome Gurumoorthi</h2>
+            <h2 className='text-3xl font-semibold text-slate-800'>Welcome {username}{lastname}</h2>
             <div className='flex items-center gap-3 text-slate-700'>
-                <span className="font-medium">Gurumoorthi</span>
+                <div className='text-right'>
+                  <span className="font-medium">{userEmail}</span>
+                  {userId && <p className="text-xs text-slate-500">User ID: {userId}</p>}
+                  {lastLogin && <p className="text-xs text-slate-500">Last login: {new Date(lastLogin * 1000).toLocaleString()}</p>}
+                </div>
                 <div className='w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-lg shadow-[3px_3px_6px_#cbd5e1,_-3px_-3px_6px_#ffffff]'>👤</div>
             </div>
         </div>

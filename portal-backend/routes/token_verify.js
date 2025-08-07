@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
     else{
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            return res.status(200).json({ token: token, message: 'Token is valid', userId: decoded });
+            return res.status(200).json({ message: 'Token is valid', userId: decoded });
         } catch (error) {
             return res.status(401).json({ message: 'Token expired' });
             

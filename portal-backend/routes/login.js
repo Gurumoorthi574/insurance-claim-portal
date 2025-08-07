@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
             return res.status(400).send('Invalid credentials');
         }
 
-        const token = jwt.sign({ u_id: user.userId }, jwtSecret, { expiresIn: '15m' });
+        const token = jwt.sign({ u_id: user.userId, email: user.emailId, userType: user.userType }, jwtSecret, { expiresIn: '15m' });
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -50,7 +50,18 @@ router.post('/', async (req, res) => {
             maxAge: 30 * 60 * 1000
         });
 
-        res.status(200).json({ success: true, message: "vaild user", token: token });
+        res.status(200).json({
+            success: true,
+            message: "vaild user",
+            user: {
+                userId: user.userId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                emailId: user.emailId,
+                userType: user.userType
+            }
+        });
+
     } catch (error) {
         res.status(500).send(`${error.message}`);
     }

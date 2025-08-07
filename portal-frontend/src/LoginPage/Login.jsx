@@ -56,8 +56,14 @@ const Login = () => {
       });
       if (response.status === 200 && response.data.success) {
         toast.success('Login successful!');
+        // Store user details in localStorage
+        const { user } = response.data;
+        localStorage.setItem('Username', user.firstName);
+        localStorage.setItem('Initial', user.lastName);
+        localStorage.setItem('U_Id', user.userId);
+        localStorage.setItem('U_email', user.emailId);
+        localStorage.setItem('U_type', user.userType);
         navigate('/dashboard');
-        
       } else {
         toast.error(response.data.message || 'Login failed. Please check your credentials.');
       }
