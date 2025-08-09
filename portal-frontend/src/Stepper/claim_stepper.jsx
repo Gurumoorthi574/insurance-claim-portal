@@ -152,7 +152,7 @@ export function InsuranceStepper() {
       case 3:
         return <ClaimFourthForm goToNext={handleNext}  goToPrev={handlePrev} />;
       case 4:
-        return <ReviewForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        return <ReviewForm goToPrev={handlePrev} />;
       default:
         return <div>Step not found</div>;
     }
@@ -170,7 +170,8 @@ export function InsuranceStepper() {
   return (
     <div className="flex h-screen font-sans bg-slate-100">
       <aside className="w-64 bg-slate-100 text-slate-700 flex flex-col p-6 shadow-[8px_0px_16px_#cbd5e1] z-10">
-        <h1 className="text-3xl font-bold mb-12 text-cyan-700">Insurance</h1>
+        {/* <h1 className="text-3xl font-bold mb-12 text-cyan-700">Insurance</h1> */}
+        <img src="/Guru Health Insurance Logo Design.png" alt="GH Insurance" className="h-38 w-30 ml-10" />
         <nav className="flex flex-col gap-4">
           <button 
             className="bg-slate-100 text-slate-700 hover:text-cyan-600 px-4 py-3 rounded-xl text-left shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"
@@ -233,23 +234,24 @@ export function InsuranceStepper() {
           <div className="mt-5 mb-5">{renderActiveForm()}</div>
 
           {/* Navigation */}
-          <div className={`mt-10 flex ${isFirst ? 'justify-end' : 'justify-between'}`}>
-            {!isFirst && (
+          {!isLast && (
+            <div className={`mt-10 flex ${isFirst ? 'justify-end' : 'justify-between'}`}>
+              {!isFirst && (
+                <Button
+                  onClick={handlePrev}
+                  className="px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"
+                >
+                  Prev
+                </Button>
+              )}
               <Button
-                onClick={handlePrev}
-                className="px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"
+                onClick={handleNext}
+                className="px-8 py-3 bg-slate-100 text-cyan-600 font-semibold rounded-xl shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] active:text-cyan-700 transition-all duration-150 ease-in-out"
               >
-                Prev
+                Next
               </Button>
-            )}
-            <Button
-              onClick={handleNext}
-              className="px-8 py-3 bg-slate-100 text-cyan-600 font-semibold rounded-xl shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] active:text-cyan-700 transition-all duration-150 ease-in-out"
-              disabled={isLast}
-            >
-              Next
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -11,10 +11,9 @@ export const FormProvider = ({ children }) => {
     // Form 1: Personal & Policy Details
     policyNumber: '',
     firstName: '',    
-    lastName: '',     
-    email: '',        
-    phone: '',        
+    lastName: '',             
     address: '',     
+    phone: '',        
     dateOfBirth: '',
     relationship: '',
 

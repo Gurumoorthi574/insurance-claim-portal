@@ -12,7 +12,7 @@ const userformdetailSchema = new mongoose.Schema({
   policyNumber: { type: String, required: false },    // From form.policyNumber
   firstName: { type: String, required: false },       // From form.firstname
   lastName: { type: String, required: false },        // From form.lastname
-  emailAddress: { type: String, required: false },    // From form.emailAddress, was 'email'
+  emailAddress: { type: String, required: false },    // Email of the user the claim is for (Assigned To). Was 'email'.
   phoneNumber: { type: String, required: false },     // From form.phoneNumber, was 'phone'
   address: { type: String, required: false },         // Assuming from form.address (Form 1)
 
@@ -63,6 +63,10 @@ const userformdetailSchema = new mongoose.Schema({
   claimTitle: { type: String, required: false },        // Was 'title'
   claimDescription: { type: String, required: false },  // Was 'description'
   // 'createdAt' from timestamps can serve as claim submission date (was 'date')
+  createdBy: { type: String, required: false }, // Email of the user who created the claim (can be admin)
+  assignedTo: { type: String, required: false }, // Email of the user the claim is assigned to (was 'emailAddress')
+  createdAt: { type: Date, default: Date.now }, // Automatically set to current date/time
+  updatedAt: { type: Date, default: Date.now }, // Automatically set to current date/time on update
 
   // Status of the claim
   status: { type: String, required: true, enum: ['Pending', 'Approved', 'Rejected', 'Information Requested'], default: 'Pending', trim: true }

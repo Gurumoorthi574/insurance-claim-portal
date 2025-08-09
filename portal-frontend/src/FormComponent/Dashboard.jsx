@@ -74,7 +74,8 @@ function Dashboard() {
       <Toaster position="top-right" />
       {/* Sidebar */}
       <aside className="w-64 bg-slate-100 text-slate-700 flex flex-col p-6 shadow-[8px_0px_16px_#cbd5e1] z-10">
-        <h1 className="text-3xl font-bold mb-12 text-cyan-700">GH INSURANCE</h1>
+        {/* <h1 className="text-3xl font-bold mb-12 text-cyan-700">GH INSURANCE</h1> */}
+        <img src="/Guru Health Insurance Logo Design.png" alt="GH Insurance" className="h-38 w-30 ml-10" />
         <nav className="flex flex-col gap-4">
           <button 
             className="flex items-center bg-slate-100 text-cyan-600 font-semibold px-4 py-3 rounded-xl text-left shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] transition-all duration-150 ease-in-out"

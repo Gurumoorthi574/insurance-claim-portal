@@ -33,7 +33,7 @@ function ReviewForm({ goToPrev }) { // Accept goToPrev prop
     personal: {
       name: `${form.firstName || ''} ${form.lastName || ''}`,
       email: form.email || '',
-      policyNumber: form.policyNumber || '',
+      policyNumber: form.policyNumber || 'Will be generated upon submission',
       phone: form.phone || '',
     },
     provider: { // Assuming these fields exist in your form context from previous steps
@@ -65,9 +65,8 @@ function ReviewForm({ goToPrev }) { // Accept goToPrev prop
       try {
         // Pass the relevant data to be saved.
         // Assuming saveData expects the entire form object or a specific structure.
-        // You might need to combine currentClaimDetails with other form data if necessary.
-        await saveData(form); // or saveData(currentClaimDetails) if that's what your API expects
-        setNotification({ message: "Claim Submitted Successfully!", type: 'success' });
+        const response = await saveData(form); // Assuming saveData returns the response data from the API call
+        setNotification({ message: `Claim Submitted Successfully! Your Policy Number is ${response.policyNumber}.`, type: 'success' });
       } catch (error) {
         console.error('Error submitting claim:', error);
         setNotification({ message: "Failed to submit claim. Please try again.", type: 'error' });

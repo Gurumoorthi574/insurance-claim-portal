@@ -95,7 +95,7 @@ const Signup = () => {
       {/* Left Image Side */}
       <div className="md:w-1/2 hidden md:block">
         <img
-          src="/Insurance.png"
+          src="/Insurance Types Overview in Blue.png"
           alt="Insurance Illustration"
           className="w-full h-full object-center"
         />
@@ -103,6 +103,11 @@ const Signup = () => {
       {/*right side*/}
       <div className="md:w-1/2 flex flex-col justify-center items-center p-8 bg-slate-100">
         <div className="w-full max-w-sm bg-slate-100 p-8 rounded-2xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff]">
+          <img
+          src="/Guru Health Insurance Logo Design.png"
+          alt="Insurance Illustration"
+          className="w-30 m-auto"
+        />
           <h2 className="text-2xl font-semibold mb-6 text-center text-slate-700">Sign Up</h2>
           {/* Success message can remain inline */}
           {success && <div className="text-green-600 text-center mb-2">{success}</div>}
