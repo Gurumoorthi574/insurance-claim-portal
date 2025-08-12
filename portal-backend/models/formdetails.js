@@ -69,7 +69,7 @@ const userformdetailSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }, // Automatically set to current date/time on update
 
   // Status of the claim
-  status: { type: String, required: true, enum: ['Pending', 'Approved', 'Rejected', 'Information Requested'], default: 'Pending', trim: true }
+  status: { type: String, required: true, enum: ['Pending', 'Referred', 'Approved', 'Rejected', 'Information Requested'], default: 'Pending', trim: true }
 }, { timestamps: true });
 
 module.exports = mongoose.models.UserFormDetails || mongoose.model('UserFormDetails', userformdetailSchema);

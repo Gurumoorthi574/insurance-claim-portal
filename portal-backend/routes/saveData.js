@@ -36,41 +36,35 @@ router.post('/', async (req, res) => {
         const newPolicyNumber = generatePolicyNumber();
 
         // 2. Process form data from the request body
-
         const { email, policyNumber, ...formData } = req.body;
-        let status,assignedTo;
+        const createdBy = decoded.email;
+        let assignedTo;
 
-        if (decoded.userType !== 'admin'){
+        if (decoded.userType === 'admin') {
+            assignedTo = createdBy;
+        } else {
             if (formData.referralType === 'no') {
-                status = 'Approved';
-                assignedTo = decoded.email;
-            } 
-            else if (formData.referralType === 'yes') {
-                status = 'Pending';
-                const adminUser = await usermanagement.findOne({ userType: 'admin'});
+                assignedTo = createdBy;
+                status = 'pending'
+            } else if (formData.referralType === 'yes') {
+                const adminUser = await usermanagement.findOne({ userType: 'admin' });
                 if (!adminUser) {
                     return res.status(400).json({ message: "No admin user found to assign the claim." });
                 }
                 assignedTo = adminUser.emailId;
-            } 
-            else {
+            } else {
                 return res.status(400).json({ message: "ReferralType is missing or invalid. Please select 'Yes' or 'No'." });
             }
         }
-
+        const status = (assignedTo !== createdBy) ? 'Referred' : 'Approved';
 
         // 3. Associate the claim with the correct user email
-        let emailToSave;
-        if (decoded.userType === 'admin' && email) {
-            emailToSave = email; 
-        } else {
-            emailToSave = decoded.email; // User is submitting for themselves
-        }
+        const emailToSave = (decoded.userType === 'admin' && email) ? email : createdBy;
 
         const dataToSave = {
             ...formData,
             policyNumber: newPolicyNumber,
-            createdBy: decoded.email,
+            createdBy: createdBy,
             assignedTo: assignedTo,
             emailAddress: emailToSave,
             status: status,
