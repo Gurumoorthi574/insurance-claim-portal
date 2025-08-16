@@ -57,7 +57,8 @@ app.use('/api/auth/signup', signupRouter);
 app.use('/api/saveData', saveDataRouter);
 app.use('/api/fetch/claim_status', claimStatusRouter);
 app.use('/api/fetch/dashboard', dashboardRouter);
-app.use('/api/fetch/claim/by-policy', claimRouter);
+app.use('/api/fetch/claim', claimRouter);
+// app.use('/api/fetch/claim/by-policy', claimRouter);
 app.use('/api/fetch/claim-history', claimHistoryRouter);
 
 

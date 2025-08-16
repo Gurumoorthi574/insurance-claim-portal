@@ -12,9 +12,11 @@ const userformdetailSchema = new mongoose.Schema({
   policyNumber: { type: String, required: false },    // From form.policyNumber
   firstName: { type: String, required: false },       // From form.firstname
   lastName: { type: String, required: false },        // From form.lastname
+  dateOfBirth: { type: String, required: false },     // From form.dateOfBirth
   emailAddress: { type: String, required: false },    // Email of the user the claim is for (Assigned To). Was 'email'.
   phoneNumber: { type: String, required: false },     // From form.phoneNumber, was 'phone'
-  address: { type: String, required: false },         // Assuming from form.address (Form 1)
+  address: { type: String, required: false },  
+  relationshipToPatient: { type: String, required: false },       // Assuming from form.address (Form 1)
 
   // Form 2: Medical Provider Information
   providerName: { type: String, required: false },    // From form.providerName
@@ -30,6 +32,10 @@ const userformdetailSchema = new mongoose.Schema({
   primaryDiagnosis: { type: String, required: false },     // From form.primaryDiagnosis
   diagnosisCode: { type: String, required: false },        // From form.diagnosisCode
   typeOfVisit: { type: String, required: false },          // From form.typeOfVisit
+  symptomsDescription: { type: String, required: false },
+  treatmentProvided: { type: String, required: false },
+  workRelated: { type: String, required: false },
+  autoAccidentRelated: { type: String, required: false },
 
   // Form 4: Medical Expenses
   expenseItems: [expenseItemSchema],                      // From form.expenseItems
@@ -67,6 +73,7 @@ const userformdetailSchema = new mongoose.Schema({
   assignedTo: { type: String, required: false }, // Email of the user the claim is assigned to (was 'emailAddress')
   createdAt: { type: Date, default: Date.now }, // Automatically set to current date/time
   updatedAt: { type: Date, default: Date.now }, // Automatically set to current date/time on update
+  remark: { type: String, required: false },
 
   // Status of the claim
   status: { type: String, required: true, enum: ['Pending', 'Referred', 'Approved', 'Rejected', 'Information Requested'], default: 'Pending', trim: true }

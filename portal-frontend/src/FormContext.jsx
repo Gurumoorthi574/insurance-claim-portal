@@ -13,9 +13,10 @@ export const FormProvider = ({ children }) => {
     firstName: '',    
     lastName: '',             
     address: '',     
-    phone: '',        
+    phoneNumber: '',        
     dateOfBirth: '',
-    relationship: '',
+    relationshipToPatient: '',
+    emailAddress: '',
 
     // Form 2: Medical Provider Information
     providerName: '',
@@ -39,7 +40,8 @@ export const FormProvider = ({ children }) => {
     // Form 4: Medical Expenses
     expenseItems: [], 
     totalClaimAmount: 0,
-    uploadedDocumentPaths: [], 
+    uploadedDocumentPaths: [],
+    remark: '',
   });
 
   // Save form data to backend using axios

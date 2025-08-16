@@ -9,6 +9,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loginType, setLoginType] = useState('admin');
+  const [isLoading, setIsLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ userId: '', emailId: '', password: '' });
 
   // This effect runs once on mount to show any errors passed from other pages.
@@ -40,7 +41,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // setError('');
+    setIsLoading(true);
+
+    // NOTE: Artificial delay to showcase the skeleton loader.
+    // This should be removed in production.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     try {
       // Choose payload and endpoint based on loginType
       let payload, endpoint;
@@ -71,6 +76,8 @@ const Login = () => {
       const errorMessage = err.response?.data?.message || err.response?.data || 'Login failed. Please check your credentials.';
       toast.error(errorMessage);
       console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -176,8 +183,16 @@ const Login = () => {
               </a>
             </div>
             <div className="flex justify-center items-center mt-6">
-              <Button type="submit" className="py-3 px-8 bg-slate-100 text-cyan-600 font-semibold rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] active:text-cyan-700 transition-all duration-150 ease-in-out">
-                Log In
+              <Button
+                type="submit"
+                className={`py-3 px-8 bg-slate-100 text-cyan-600 font-semibold rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] active:text-cyan-700 transition-all duration-150 ease-in-out ${
+                  isLoading && 'animate-pulse'
+                }`}
+                disabled={isLoading}
+              >
+                <span className={isLoading ? 'opacity-0' : 'opacity-100'}>
+                  Log In
+                </span>
               </Button>
             </div>
           </form>

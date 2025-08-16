@@ -29,7 +29,7 @@ function MedicalProviderForm({goToNext,goToPrev}) {
 
       <main className="bg-slate-100 rounded-2xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] p-6 md:p-8 flex flex-col gap-6">
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">Medical Provider Information</h2>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">Treatment Details</h2>
                 <p className="text-slate-600">Details about your illness/injury and treatment</p>
               </div>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>

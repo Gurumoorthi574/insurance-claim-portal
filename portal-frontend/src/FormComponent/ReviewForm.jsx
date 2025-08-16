@@ -1,45 +1,29 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'
 import { useFormContext } from '../FormContext';
 import { FaUser, FaHospital, FaNotesMedical, FaDollarSign } from 'react-icons/fa';
-
-// Notification component for top-right popup
-const Notification = ({ message, type, onClose }) => {
-  if (!message) return null;
-
-  const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-
-  return (
-    <div className={`fixed top-6 right-6 z-50 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg flex items-center transition-transform transform animate-slide-in-right`}>
-      <span>{message}</span>
-      <button
-        className="ml-4 text-white font-bold"
-        onClick={onClose}
-        aria-label="Close"
-      >
-        ×
-      </button>
-    </div>
-  );
-};
+import ReviewFormSkeleton from './ReviewFormSkeleton';
+import toast from 'react-hot-toast';
 
 function ReviewForm({ goToPrev }) { // Accept goToPrev prop
   const [isCertified, setIsCertified] = useState(false);
-  const { form, saveData } = useFormContext();
-  const [notification, setNotification] = useState({ message: '', type: '' });
+  const { form, setForm, saveData, isLoading } = useFormContext();
+  const type = localStorage.getItem('U_type');
+  const isUpdating = !!form.id;
 
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  
   // Placeholder data - in a real app, this would come from props or a state management system
   const currentClaimDetails = {
     personal: {
       name: `${form.firstName || ''} ${form.lastName || ''}`,
-      email: form.email || '',
+      email: form.emailAddress || '',
       policyNumber: form.policyNumber || 'Will be generated upon submission',
-      phone: form.phone || '',
+      phone: form.phoneNumber || '',
     },
     provider: { // Assuming these fields exist in your form context from previous steps
       providerName: form.providerName || "N/A", // Example: replace with actual form field
       facility: form.facilityName || "N/A", // Example: replace with actual form field
-      serviceDate: form.dateOfIllness || "N/A",
+      serviceDate: form.dateOfService || form.dateOfIllness || "N/A", // Prefer dateOfService
       providerType: form.providerType || "N/A", // Example: replace with actual form field
     },
     treatment: { // Assuming these fields exist in your form context from previous steps
@@ -52,34 +36,39 @@ function ReviewForm({ goToPrev }) { // Accept goToPrev prop
     }
   };
 
-  useEffect(() => {
-    if (notification.message) {
-      const timer = setTimeout(() => setNotification({ message: '', type: '' }), 3000); // Auto-dismiss after 3 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
-
-
   const handleSubmitClaim = async () => {
     if (isCertified) {
       try {
         // Pass the relevant data to be saved.
         // Assuming saveData expects the entire form object or a specific structure.
-        const response = await saveData(form); // Assuming saveData returns the response data from the API call
-        setNotification({ message: `Claim Submitted Successfully! Your Policy Number is ${response.policyNumber}.`, type: 'success' });
+        // const response = await saveData(form); // Assuming saveData returns the response data from the API call
+        const updatedForm = { ...form};
+        if (isUpdating && type === 'admin') {
+          updatedForm.status = 'Approved'; // Admin updates set status to Approved
+        }
+        const response = await saveData(updatedForm);
+        if (isUpdating) {
+          toast.success('Claim updated successfully!');
+        } else {
+          toast.success(`Claim Submitted Successfully! Your Policy Number is ${response.policyNumber}.`);
+        }
       } catch (error) {
         console.error('Error submitting claim:', error);
-        setNotification({ message: "Failed to submit claim. Please try again.", type: 'error' });
+        toast.error(`Failed to submit claim.${error.message}`);
       }
     } else {
-      setNotification({ message: "Please certify the information before submission.", type: 'error' });
+      toast.error("Please certify the information before submission.");
     }
   };
+
+  if (isLoading) {
+    return <ReviewFormSkeleton />;
+  }
+  
   return (
     <div className="font-sans max-w-4xl mx-auto p-5 md:p-8 bg-slate-100 rounded-2xl shadow-[8px_8px_16px_#cbd5e1,_-8px_-8px_16px_#ffffff]">
       {/* Header Section */}
       <div className="mb-8">
-        <Notification message={notification.message} type={notification.type} onClose={() => setNotification({ message: '', type: '' })} />
         <h1 className="text-3xl font-semibold text-slate-800 mb-1">Review & Submit</h1>
         <p className="text-slate-600">Review your claim details before submission</p>
       </div>
@@ -172,6 +161,23 @@ function ReviewForm({ goToPrev }) { // Accept goToPrev prop
         </label>
       </div>
 
+      {/* Admin Remark Section - Visible only for admins on update */}
+      {isUpdating && type === 'admin' && (
+        <div className="bg-slate-100 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] p-6 mb-8">
+          <label className="block text-slate-700">
+            <span className="font-semibold">Admin Remark:</span>
+            <textarea
+              name="remark"
+              value={form.remark || ''}
+              onChange={handleChange}
+              className="block w-full bg-slate-100 border-transparent rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] mt-[0.625rem]"
+              placeholder="Add a remark for the user..."
+              rows="3"
+            />
+          </label>
+        </div>
+      )}
+
       {/* Navigation Buttons and Step Indicator */}
       <div className="flex justify-between items-center mt-8">
         <button
@@ -184,10 +190,10 @@ function ReviewForm({ goToPrev }) { // Accept goToPrev prop
           <span className="text-slate-500 text-sm md:hidden">Step 5 of 5</span> {/* Hidden on desktop */}
           <button
             className="px-8 py-3 bg-slate-100 text-green-600 font-semibold rounded-xl shadow-[5px_5px_10px_#cbd5e1,_-5px_-5px_10px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] active:text-green-700 transition-all duration-150 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-[inset_2px_2px_4px_#cbd5e1,_inset_-2px_-2px_4px_#ffffff]"
-            onClick={handleSubmitClaim}
+            onClick={handleSubmitClaim} // This will now handle both create and update
             disabled={!isCertified}
           >
-            Submit Claim
+            {isUpdating ? (type === 'admin' ? 'Accept' : 'Update Claim') : 'Submit Claim'}
           </button>
         </div>
       </div>

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useFormContext } from '../FormContext';
-function PersonInformationForm({ goToNext, goToPrev, isFirst }) { // Accept isFirst prop
-  const { form, setForm, saveData } = useFormContext();
+
+function PersonInformationForm() {
+  const { form, setForm } = useFormContext();
   const type = localStorage.getItem('U_type');
   const userEmail = localStorage.getItem('U_email');
 
@@ -11,27 +11,11 @@ function PersonInformationForm({ goToNext, goToPrev, isFirst }) { // Accept isFi
   };
 
   useEffect(() => {
-    if (type === 'user' && userEmail && form.email !== userEmail) {
-      setForm(prevForm => ({ ...prevForm, email: userEmail }));
+    if (type === 'user' && userEmail && form.emailAddress !== userEmail) {
+      setForm(prevForm => ({ ...prevForm, emailAddress: userEmail }));
     }
-  }, [type, userEmail, form.email, setForm]);
-
-  const handleNext = async () => {
-    try {
-      goToNext(); // Call the function passed as a prop
-    } catch (error) {
-      console.error("Error in handleNext:", error);
-    }
-  };
-
-
-  const navigate = useNavigate();
-  const redirectToLogin = () => {
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    if (!document.cookie.includes('token')) {
-      navigate('/login'); // Redirect to login if no token found
-    }
-  };
+  }, [type, userEmail, form.emailAddress, setForm]);
+  
   return (
     <>
       <section className="flex-1 bg-slate-100 p-4 md:p-8">
@@ -81,7 +65,8 @@ function PersonInformationForm({ goToNext, goToPrev, isFirst }) { // Accept isFi
               <input
                 type="date"
                 name="dateOfBirth"
-                value={form.dateOfBirth || ''}
+                // Format date to YYYY-MM-DD for the input field
+                value={form.dateOfBirth ? new Date(form.dateOfBirth).toISOString().split('T')[0] : ''}
                 onChange={handleChange}
                 className="block w-full bg-slate-100 border-transparent rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] mt-[0.625rem]"
               />
@@ -103,8 +88,8 @@ function PersonInformationForm({ goToNext, goToPrev, isFirst }) { // Accept isFi
               Email Address*:
               <input
                 type="email"
-                name="email"
-                value={form.email || ''}
+                name="emailAddress"
+                value={form.emailAddress || ''}
                 onChange={handleChange}
                 placeholder="Enter user's email"
                 className="block w-full bg-slate-100 border-transparent rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] mt-[0.625rem]"
@@ -116,8 +101,8 @@ function PersonInformationForm({ goToNext, goToPrev, isFirst }) { // Accept isFi
             Phone Number*:
             <input
               type="number"
-              name="phone"
-              value={form.phone || ''}
+              name="phoneNumber"
+              value={form.phoneNumber}
               onChange={handleChange}
               placeholder="+91 1234567890"
               className="block w-full bg-slate-100 border-transparent rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] mt-[0.625rem]"
@@ -127,8 +112,8 @@ function PersonInformationForm({ goToNext, goToPrev, isFirst }) { // Accept isFi
           <label className="block">
             Relationship to Patient*:
             <select
-              name="relationship"
-              value={form.relationship || ''}
+              name="relationshipToPatient"
+              value={form.relationshipToPatient || ''}
               onChange={handleChange}
               className="block w-full bg-slate-100 border-transparent rounded-xl px-4 py-3 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] mt-[0.625rem]"
             >

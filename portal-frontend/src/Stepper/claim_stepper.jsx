@@ -8,7 +8,9 @@ import HealthCareForm from "../FormComponent/HealthCareForm";
 import MedicalProviderForm from "../FormComponent/MedicalProviderForm";
 import ClaimFourthForm from "../FormComponent/MedicalExpenseForm";
 import ReviewForm from "../FormComponent/ReviewForm";
-import { HomeIcon, UserIcon, CogIcon, DocumentTextIcon, CheckCircleIcon,} from "@heroicons/react/24/solid";
+import { HomeIcon, UserIcon, CogIcon, DocumentTextIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import { Toaster, toast } from "react-hot-toast";
+import { startCase } from "lodash";
 
 
 
@@ -21,28 +23,27 @@ export function InsuranceStepper() {
 
   useEffect(() => {
     if (claimId) {
+      const userType = localStorage.getItem('U_type');
+      if (userType == 'admin') setActiveStep(4);
       setIsLoading(true);
-      // The 'claimId' from useParams() is now treated as the policyNumber.
-      axios.get(`http://localhost:3000/api/fetch/claim/by-policy/${claimId}`, {
+      // The API endpoint was also slightly incorrect. It should be /api/fetch/claim/:policyNumber
+      axios.get(`http://localhost:3000/api/fetch/claim/${claimId}`, {
         withCredentials: true,
       })
         .then(response => {
-          const fetchedData = response.data;
-          // Map fetchedData to the FormContext structure.
-          // Adjust field names (e.g., fetchedData.someApiField) based on your API response.
+          const fetchedData = response.data.data; // Correctly access the nested 'data' object
           setForm({
-            // Ensure all fields from FormContext are considered for mapping
-            id: fetchedData.id || null,
+            id: fetchedData._id || null, // Use '_id' for MongoDB documents
 
             // Form 1: Personal & Policy Details
             policyNumber: fetchedData.policyNumber || '',
-            firstName: fetchedData.firstName || '',
-            lastName: fetchedData.lastName || '',
-            email: fetchedData.email || '',
-            phone: fetchedData.phone || '',
+            firstName: fetchedData.firstName,
+            lastName: fetchedData.lastName ,
+            emailAddress: fetchedData.emailAddress,
+            phoneNumber: fetchedData.phoneNumber || '',
             address: fetchedData.address || '',
-            dateOfBirth: fetchedData.dob || fetchedData.dateOfBirth || '',
-            relationship: fetchedData.relationship || '',
+            dateOfBirth: fetchedData.dateOfBirth,
+            relationshipToPatient: fetchedData.relationshipToPatient || '',
 
             // Form 2: Medical Provider Information
             providerName: fetchedData.providerName || fetchedData.hospitalName || '',
@@ -70,6 +71,7 @@ export function InsuranceStepper() {
             // Other potential fields from FormContext that might be in API response
             insuranceCompanyName: fetchedData.insuranceCompanyName || fetchedData.companyName || '',
             sumInsured: fetchedData.sumInsured || '',
+            remark: fetchedData.remark || '',
           });
           setIsLoading(false);
         })
@@ -90,11 +92,11 @@ export function InsuranceStepper() {
         policyNumber: '',
         firstName: '',
         lastName: '',
-        email: '',
-        phone: '',
+        emailAddress: '',
+        phoneNumber: '',
         address: '',
         dateOfBirth: '',
-        relationship: '',
+        relationshipToPatient: '',
         providerName: '',
         providerType: '',
         providerId: '',
@@ -130,8 +132,74 @@ export function InsuranceStepper() {
   const isLast = activeStep === steps.length - 1;
   const isFirst = activeStep === 0;
 
+  const validateStep = (stepIndex) => {
+    const type = localStorage.getItem('U_type');
+    let requiredFields = [];
+    switch (stepIndex) {
+      case 0:
+        requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'address', 'phoneNumber', 'relationshipToPatient'];
+        if (type === 'admin') {
+          requiredFields.push('policyNumber', 'emailAddress');
+        }
+        break;
+      case 1:
+        requiredFields = ['providerName', 'providerType', 'providerId', 'facilityName', 'facilityAddress', 'dateOfService', 'referralType'];
+        break;
+      case 2:
+        requiredFields = ['dateOfIllness', 'primaryDiagnosis', 'diagnosisCode', 'typeOfVisit', 'symptomsDescription', 'treatmentProvided', 'workRelated', 'autoAccidentRelated'];
+        break;
+      case 3:
+        if (!form.expenseItems || form.expenseItems.length === 0) {
+          return { isValid: false, message: "Please add at least one expense item." };
+        }
+        if (!form.totalClaimAmount || form.totalClaimAmount <= 0) {
+          return { isValid: false, message: "Total claim amount must be greater than zero." };
+        }
+        return { isValid: true };
+      default:
+        return { isValid: true };
+    }
+
+    const missingFields = requiredFields.filter(field => !form[field]);
+    if (missingFields.length > 0) {
+      return { isValid: false, missingFields };
+    }
+    return { isValid: true };
+  };
+
+
   const handleNext = () => {
-    if (!isLast) setActiveStep((prev) => prev + 1);
+    const validationResult = validateStep(activeStep);
+    console.log("Validation Result:", validationResult);
+    if (validationResult.isValid) {
+      if (!isLast) setActiveStep((prev) => prev + 1);
+    } else if (validationResult.message) {
+      toast.error(validationResult.message);
+    } else if (validationResult.missingFields) {
+      const fieldNames = validationResult.missingFields.map(field => startCase(field));
+      toast(`Some required information is missing. Please check: ${fieldNames.join(', ')}`,{
+        icon: '⚠️',
+        style: { background: '#f59e0b', color: 'white' },
+      });
+    }
+  };
+  const handleStepClick = (stepIndex) => {
+    if (stepIndex <= activeStep) {
+      setActiveStep(stepIndex);
+      return;
+    }
+    
+    for (let i = 0; i < stepIndex; i++) {
+      const validationResult = validateStep(i);
+      if (!validationResult.isValid) {
+        toast(`Please complete step ${i + 1} before proceeding.`, {
+          icon: '⚠️',
+          style: { background: '#f59e0b', color: 'white' },
+        });
+        return;
+      }
+    }
+    setActiveStep(stepIndex);
   };
 
   const handlePrev = () => {
@@ -144,13 +212,17 @@ export function InsuranceStepper() {
     }
     switch (activeStep) {
       case 0:
-        return <PersonInformationForm goToNext={handleNext}  goToPrev={handlePrev} isFirst={isFirst} />;
+        // return <PersonInformationForm goToNext={handleNext}  goToPrev={handlePrev} isFirst={isFirst} />;
+        return <PersonInformationForm />
       case 1:
-        return <HealthCareForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        // return <HealthCareForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        return <HealthCareForm />
       case 2:
-        return <MedicalProviderForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        // return <MedicalProviderForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        return <MedicalProviderForm />
       case 3:
-        return <ClaimFourthForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        // return <ClaimFourthForm goToNext={handleNext}  goToPrev={handlePrev} />;
+        return <ClaimFourthForm />;
       case 4:
         return <ReviewForm goToPrev={handlePrev} />;
       default:
@@ -169,6 +241,20 @@ export function InsuranceStepper() {
 
   return (
     <div className="flex h-screen font-sans bg-slate-100">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          success: {
+            style: {
+              background: '#22c55e',
+              color: 'white',
+            },
+          },
+          error: {
+            style: { background: '#dc2626', color: 'white' },
+          },
+        }}
+      />
       <aside className="w-64 bg-slate-100 text-slate-700 flex flex-col p-6 shadow-[8px_0px_16px_#cbd5e1] z-10">
         {/* <h1 className="text-3xl font-bold mb-12 text-cyan-700">Insurance</h1> */}
         <img src="/Guru Health Insurance Logo Design.png" alt="GH Insurance" className="h-38 w-30 ml-10" />
@@ -201,9 +287,8 @@ export function InsuranceStepper() {
             
             {steps.map((step, idx) => (
               <React.Fragment key={idx}>
-                {/* Step circle with icon */}
-                <div // Neumorphic step circle
-                  onClick={() => setActiveStep(idx)}
+                <div 
+                  onClick={() => handleStepClick(idx)}
                   className={`
                     z-10 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer
                     transition-all duration-300 ease-in-out

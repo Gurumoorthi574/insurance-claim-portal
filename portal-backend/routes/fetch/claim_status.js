@@ -21,15 +21,31 @@ router.get('/', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Token is missing user information' });
         }
 
-        const totalCount = await UserFormDetails.countDocuments({ emailAddress: decoded.email });
-        const pendingCount = await UserFormDetails.countDocuments({ emailAddress: decoded.email, status: 'Pending' });
-        const approvedCount = await UserFormDetails.countDocuments({ emailAddress: decoded.email, status: 'Approved' });
-        const rejectedCount = await UserFormDetails.countDocuments({ emailAddress: decoded.email, status: 'Rejected' });
+        const userEmail = decoded.email;
 
-        res.json({data: totalCount,
-            pendingCount: pendingCount,
-            approvedCount: approvedCount,
-            rejectedCount: rejectedCount
+        // Use a single aggregation to get all counts efficiently
+        const statusCountsResult = await UserFormDetails.aggregate([
+            { $match: { emailAddress: userEmail } },
+            {
+                $group: {
+                    _id: '$status',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const counts = statusCountsResult.reduce((acc, status) => {
+            if (status._id) acc[status._id.toLowerCase()] = status.count;
+            return acc;
+        }, { pending: 0, approved: 0, rejected: 0 });
+
+        const totalCount = counts.pending + counts.approved + counts.rejected;
+
+        res.json({
+            data: totalCount,
+            pendingCount: counts.pending,
+            approvedCount: counts.approved,
+            rejectedCount: counts.rejected
         });
 
     } catch (error) {

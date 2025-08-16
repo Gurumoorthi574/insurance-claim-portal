@@ -1,10 +1,12 @@
 import axios from 'axios';
-import React, { useEffect } from 'react'
+import React, { useEffect,useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
+import DashboardSkeleton from './DashboardSkeleton';
 
 
 function Dashboard() {
+  const [isLoading, setIsLoading] = useState(true);
   let endpoint = 'http://localhost:3000/api/fetch/dashboard';
   const [count, setCount] = React.useState({
     pendingCount: 0,
@@ -12,7 +14,7 @@ function Dashboard() {
     rejectedCount: 0,
   });
   // const [user, setUser] = useState({ name: 'Gurumoorthi', iat: '' });
-  const [dasboardData, setDasboardData] = React.useState([]);
+  const [dasboardData, setDasboardData] = useState([]);
   const navigate = useNavigate();
   const userId = localStorage.getItem('U_Id');
   const username = localStorage.getItem('Username')
@@ -22,40 +24,62 @@ function Dashboard() {
   const type = localStorage.getItem('U_type');
 
   useEffect(() => {
-  axios.get(endpoint, {
-    withCredentials: true,
-  })
-  .then(response => {
-    const responseData = response.data;
-    // The dashboard API can be a secondary source for the user's email.
-    // Using the `U_email` key for consistency with the login component.
-    const claims = responseData.data || [];
-    // If the user is an admin, only show claims with a 'Pending' status.
-    if (type === 'admin') {
-      setDasboardData(claims);
-    } else if (type === 'user') {
-      // For regular users, only show claims that belong to them and are approved.
-      const userClaims = claims.filter(claim => claim.emailAddress === userEmail);
-      setDasboardData(userClaims.filter(claim => claim.status === 'Approved'));
-      // For users, calculate counts based on their own claims.
-      setCount({
-        pendingCount: userClaims.filter(c => c.status === 'Pending').length,
-        approvedCount: userClaims.filter(c => c.status === 'Approved').length,
-        rejectedCount: userClaims.filter(c => c.status === 'Rejected').length,
-      });
-    }
-  })
-  .catch(error => {
-    if (error.response?.status === 401) {
-      navigate('/login', { state: { error: 'Your session has expired. Please log in again.' } });
-    }
-  });
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const response = await axios.get(endpoint, { withCredentials: true });
+        const responseData = response.data;
+        const originalClaims = responseData.data || [];
+        
+        // If a claim has a remark, it is considered to be reassigned to the user who created it.
+        const claims = originalClaims.map(claim => {
+          if (claim.remark) {
+            return { ...claim, assignedTo: claim.createdBy };
+          }
+          return claim;
+        });
+
+        if (type === 'admin') {
+          setDasboardData(claims);
+          // For admin, 'Pending' and 'Referred' statuses are counted as 'Pending'.
+          const pendingCount = claims.filter(c => c.status === 'Pending' || c.status === 'Referred').length;
+          const approvedCount = claims.filter(c => c.status === 'Approved').length;
+          const rejectedCount = claims.filter(c => c.status === 'Rejected').length;
+          setCount({
+            pendingCount, approvedCount, rejectedCount,
+          });
+        } else if (type === 'user') {
+          // For regular users, show 'Approved' and 'Referred' claims in the table.
+          setDasboardData(claims.filter(claim => ['Approved', 'Referred'].includes(claim.status)));
+
+          // For users, 'Referred' status is counted as 'Pending'.
+          const pendingCount = claims.filter(c =>  c.status === 'Referred').length;
+          const approvedCount = claims.filter(c => c.status === 'Approved').length;
+          const rejectedCount = claims.filter(c => c.status === 'Rejected').length;
+
+          setCount({ pendingCount, approvedCount, rejectedCount });
+        }
+      }
+      catch (error) {
+        if (error.response?.status === 401) {
+          navigate('/login', { state: { error: 'Your session has expired. Please log in again.' } });
+        } else {
+          toast.error('Failed to fetch dashboard data. Please try again later.');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDashboardData();
   }, [type, userEmail, navigate, endpoint]);
 
   const statusColor = {
     Pending: "text-yellow-600",
     Approved: "text-green-600",
     Rejected: "text-red-600",
+    Referred: "text-blue-600",
     Recieved: "text-orange-600", // Typo mapped, now using text color
   };
 
@@ -70,7 +94,7 @@ function Dashboard() {
   const navigateToClaimHistory = () => navigate('/history'); // For claim history
 
   return (
-    <div className="flex h-screen font-sans bg-slate-100">
+    <div className="flex h-screen font-sans bg-slate-100 ">
       <Toaster position="top-right" />
       {/* Sidebar */}
       <aside className="w-64 bg-slate-100 text-slate-700 flex flex-col p-6 shadow-[8px_0px_16px_#cbd5e1] z-10">
@@ -111,99 +135,98 @@ function Dashboard() {
       </aside>
 
       <main className="flex-1 bg-slate-100 p-7 flex flex-col overflow-y-auto">
-        {/* Header */}
-        <div className='flex justify-between items-center mb-8'>
-            <h2 className='text-3xl font-semibold text-slate-800'>Welcome {username}{lastname}</h2>
-            <div className='flex items-center gap-3 text-slate-700'>
-                <div className='text-right'>
-                  <span className="font-medium">{userEmail}</span>
-                  {userId && <p className="text-xs text-slate-500">User ID: {userId}</p>}
-                  {lastLogin && <p className="text-xs text-slate-500">Last login: {new Date(lastLogin * 1000).toLocaleString()}</p>}
-                </div>
-                <div className='w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-lg shadow-[3px_3px_6px_#cbd5e1,_-3px_-3px_6px_#ffffff]'>👤</div>
-            </div>
-        </div>
+      {isLoading ? <DashboardSkeleton /> : (
+        <>
+          {/* Header */}
+          <div className='flex justify-between items-center mb-8'>
+              <h2 className='text-3xl font-semibold text-slate-800'>Welcome {username}{lastname}</h2>
+              <div className='flex items-center gap-3 text-slate-700'>
+                  <div className='text-right'>
+                    <span className="font-medium">{userEmail}</span>
+                    {userId && <p className="text-xs text-slate-500">User ID: {userId}</p>}
+                    {lastLogin && <p className="text-xs text-slate-500">Last login: {new Date(lastLogin * 1000).toLocaleString()}</p>}
+                  </div>
+                  <div className='w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-lg shadow-[3px_3px_6px_#cbd5e1,_-3px_-3px_6px_#ffffff]'>👤</div>
+              </div>
+          </div>
 
-        {/* Status Cards */}
-        <div className="flex gap-4 mb-8">
-          <div className="flex-1 bg-slate-100 p-6 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] flex items-start">
-            <div className="text-5xl font-bold text-yellow-500 ">{count.pendingCount}</div>
-            <div className='flex flex-col ml-3'>
-                <div className="text-2xl font-medium pt-1 text-slate-800">Pending</div>
-                <div className="text-sm text-slate-600">Claims</div>
+          {/* Status Cards */}
+          <div className="flex gap-4 mb-8">
+            <div className="flex-1 bg-slate-100 p-6 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] flex items-start">
+              <div className="text-5xl font-bold text-yellow-500 ">{count.pendingCount}</div>
+              <div className='flex flex-col ml-3'>
+                  <div className="text-2xl font-medium pt-1 text-slate-800">Pending</div>
+                  <div className="text-sm text-slate-600">Claims</div>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-100 p-6 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] flex items-start">
+              <div className="text-5xl font-bold text-green-500 ">{count.approvedCount}</div>
+              <div className='flex flex-col ml-3'>
+                  <div className="text-2xl font-medium pt-1 text-slate-800">Approved</div>
+                  <div className="text-sm text-slate-600">Claims</div>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-100 p-6 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] flex items-start">
+              <div className="text-5xl font-bold text-red-500 ">{count.rejectedCount}</div>
+              <div className='flex flex-col ml-3'>
+                  <div className="text-2xl font-medium pt-1 text-slate-800">Rejected</div>
+                  <div className="text-sm text-slate-600">Claims</div>
+              </div>
             </div>
           </div>
-          <div className="flex-1 bg-slate-100 p-6 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] flex items-start">
-            <div className="text-5xl font-bold text-green-500 ">{count.approvedCount}</div>
-            <div className='flex flex-col ml-3'>
-                <div className="text-2xl font-medium pt-1 text-slate-800">Approved</div>
-                <div className="text-sm text-slate-600">Claims</div>
-            </div>
-          </div>
-          <div className="flex-1 bg-slate-100 p-6 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] flex items-start">
-            <div className="text-5xl font-bold text-red-500 ">{count.rejectedCount}</div>
-            <div className='flex flex-col ml-3'>
-                <div className="text-2xl font-medium pt-1 text-slate-800">Rejected</div>
-                <div className="text-sm text-slate-600">Claims</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Table */}
-        <section className="bg-slate-100 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] p-6 flex flex-col">
-          <h3 className="text-xl font-semibold mb-6 text-slate-800">My Claims</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left border-separate border-spacing-y-2">
-              <thead>
-                <tr>
-                  {/* Updated Headers */}
-                  <th className="p-3 font-bold text-slate-600">Policy No</th>
-                  <th className="p-3 font-bold text-slate-600">Name</th>
-                  <th className="p-3 font-bold text-slate-600">Status</th>
-                  <th className="p-3 font-bold text-slate-600">Amount</th>
-                  <th className="p-3 font-bold text-slate-600 text-center">View</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dasboardData && dasboardData.length > 0 ? (
-                  dasboardData.map((claim, idx) => (
-                    <tr key={claim.id || idx} className="bg-slate-100 hover:shadow-[inset_2px_2px_5px_#cbd5e1,_inset_-2px_-2px_5px_#ffffff] transition-shadow duration-150 ease-in-out rounded-lg">
-                      {/* Updated Data Mapping */}
-                      <td className="p-3 rounded-l-lg text-slate-700">{claim.policyNumber || 'N/A'}</td>
-                      <td className="p-3 text-slate-700">{`${claim.firstName || ''} ${claim.lastName || ''}`.trim() || 'N/A'}</td>
-                      <td className="p-3">
-                        <span
-                          className={`px-3 py-1 text-sm font-medium rounded-md ${statusColor[claim.status] || "text-slate-600"}`}
-                        >
-                          {claim.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-slate-700">{typeof claim.totalClaimAmount === 'number' ? `$${claim.totalClaimAmount.toFixed(2)}` : (claim.amount ? `$${parseFloat(claim.amount).toFixed(2)}` : 'N/A')}</td>
-                      <td className="p-3 rounded-r-lg text-center">
-                        <button
-                          className="bg-slate-100 text-cyan-600 font-medium px-4 py-2 rounded-lg shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] hover:shadow-[3px_3px_6px_#cbd5e1,_-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#cbd5e1,_inset_-3px_-3px_6px_#ffffff] transition-all duration-150 ease-in-out"
-                        >
-                          View
-                        </button>
-                        {/* -To Do */}
-                        {/* <button
-                          className="bg-slate-100 text-cyan-600 font-medium px-4 py-2 rounded-lg shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] hover:shadow-[3px_3px_6px_#cbd5e1,_-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#cbd5e1,_inset_-3px_-3px_6px_#ffffff] transition-all duration-150 ease-in-out"
-                          onClick={() => navigate(`/stepper/${claim.policyNumber}`)}
-                        >
-                          View
-                        </button> */}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
+          {/* Table */}
+          <section className="bg-slate-100 rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] p-6 flex flex-col">
+            <h3 className="text-xl font-semibold mb-6 text-slate-800">My Claims</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left border-separate border-spacing-y-2">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="text-center text-slate-500 py-6">No claims found.</td>
+                    {/* Updated Headers */}
+                    <th className="p-3 font-bold text-slate-600">Policy No</th>
+                    <th className="p-3 font-bold text-slate-600">Name</th>
+                    <th className="p-3 font-bold text-slate-600">Status</th>
+                    <th className="p-3 font-bold text-slate-600">Amount</th>
+                    <th className="p-3 font-bold text-slate-600 text-center">View</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                </thead>
+                <tbody>
+                  {dasboardData && dasboardData.length > 0 ? (
+                    dasboardData.map((claim, idx) => (
+                      <tr key={claim.id || idx} className="bg-slate-100 hover:shadow-[inset_2px_2px_5px_#cbd5e1,_inset_-2px_-2px_5px_#ffffff] transition-shadow duration-150 ease-in-out rounded-lg">
+                        {/* Updated Data Mapping */}
+                        <td className="p-3 rounded-l-lg text-slate-700">{claim.policyNumber || 'N/A'}</td>
+                        <td className="p-3 text-slate-700">{`${claim.firstName || ''} ${claim.lastName || ''}`.trim() || 'N/A'}</td>
+                        <td className="p-3">
+                          <span
+                            className={`px-3 py-1 text-sm font-medium rounded-md ${statusColor[claim.status] || "text-slate-600"}`}
+                          >
+                            {claim.status}
+                          </span>
+                        </td>
+                        <td className="p-3 text-slate-700">{typeof claim.totalClaimAmount === 'number' ? `$${claim.totalClaimAmount.toFixed(2)}` : (claim.amount ? `$${parseFloat(claim.amount).toFixed(2)}` : 'N/A')}</td>
+                        <td className="p-3 rounded-r-lg text-center">
+                          <button
+                            className="bg-slate-100 text-cyan-600 font-medium px-4 py-2 rounded-lg shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] hover:shadow-[3px_3px_6px_#cbd5e1,_-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#cbd5e1,_inset_-3px_-3px_6px_#ffffff] transition-all duration-150 ease-in-out"
+                            onClick={() => navigate(`/stepper/${claim.policyNumber}`)}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="text-center text-slate-500 py-6">No claims found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </>
+      )}
       </main>
     </div>
   )
