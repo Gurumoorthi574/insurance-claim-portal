@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useFormContext } from '../FormContext';
 import { FaUser, FaHospital, FaNotesMedical, FaDollarSign } from 'react-icons/fa';
-import ReviewFormSkeleton from './ReviewFormSkeleton';
+import ReviewFormSkeleton from '../Skeleton Loader/ReviewFormSkeleton';
 import toast from 'react-hot-toast';
 
 function ReviewForm({ goToPrev }) { // Accept goToPrev prop

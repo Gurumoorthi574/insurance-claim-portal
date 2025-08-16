@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useEffect,useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
-import DashboardSkeleton from './DashboardSkeleton';
+import DashboardSkeleton from '../Skeleton Loader/DashboardSkeleton';
 
 
 function Dashboard() {
