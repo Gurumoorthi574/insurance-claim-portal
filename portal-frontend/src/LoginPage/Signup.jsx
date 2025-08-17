@@ -15,15 +15,14 @@ const Signup = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     // setSignupForm({ ...signupForm, [e.target.name]: e.target.value });
     const { name, value } = e.target;
-    let updateForm ={...signupForm, [name]: value};
+    const updateForm = { ...signupForm, [name]: value };
     if (name === 'emailId') {
-      const userId = value.includes('@') ? value.split('@')[0] : value;
+      const userId = value.split('@')[0];
       updateForm.userId = userId;
     }
     setSignupForm(updateForm);
@@ -31,7 +30,16 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccess('');
+
+    if (signupForm.password !== signupForm.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    if (!signupForm.firstName || !signupForm.lastName || !signupForm.emailId || !signupForm.password) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -46,7 +54,7 @@ const Signup = () => {
           lastName: '',
           emailId: '',
           userId: '',
-          userType: '',
+          userType: 'user',
           password: '',
           confirmPassword: ''
         });
@@ -54,7 +62,7 @@ const Signup = () => {
         toast.error(response.data.message || "An unknown error occurred.");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Please enter the required fields");
+      toast.error(err.response?.data?.message || "An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,8 +100,6 @@ const Signup = () => {
           className="w-30 m-auto"
         />
           <h2 className="text-2xl font-semibold mb-6 text-center text-slate-700">Sign Up</h2>
-          {/* Success message can remain inline */}
-          {success && <div className="text-green-600 text-center mb-2">{success}</div>}
           <form className="space-y-5" onSubmit={handleSubmit}>
             <input
               type="text"
