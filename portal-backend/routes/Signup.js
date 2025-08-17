@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const usermanagement = require('../models/userslogin');
+const UserModel = require('../models/users');
 
 router.post('/', async (req, res) => {
     try{
@@ -12,13 +12,13 @@ router.post('/', async (req, res) => {
         }
 
         // Check if the user already exists
-        const existingUser = await usermanagement.findOne({ userId });
+        const existingUser = await UserModel.findOne({ userId });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new usermanagement({
+        const newUser = new UserModel({
             firstName,
             lastName,
             emailId,

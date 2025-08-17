@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const UserFormDetails = require('../models/formdetails');
-const usermanagement = require('../models/userslogin');
+const UserModel = require('../models/users');
 
 router.post('/', async (req, res) => {
     try {
@@ -87,7 +87,7 @@ router.post('/', async (req, res) => {
                 status = 'Approved';
             } else {
                 // If a user creates a claim, it must be reviewed by an admin.
-                const adminUser = await usermanagement.findOne({ userType: 'admin' });
+                const adminUser = await UserModel.findOne({ userType: 'admin' });
                 if (!adminUser) {
                     return res.status(500).json({ success: false, message: "No admin user found to assign the claim." });
                 }

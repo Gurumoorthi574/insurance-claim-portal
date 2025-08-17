@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const usermanagement = require('../models/userslogin');
+const UserModel = require('../models/users');
 const bcrypt = require('bcrypt');
 
 const jwtSecret = process.env.JWT_SECRET || 'default_dev_secret';
@@ -11,25 +11,25 @@ router.post('/', async (req, res) => {
         const { userId, emailId, password } = req.body;
         console.log('Login request received:', req.body);
 
-        let user;
+        let foundUser;
 
         // Try to find user by userId (for admin)
         if (userId) {
-            user = await usermanagement.findOne({ userId });
-            if (!user) {
+            foundUser = await UserModel.findOne({ userId });
+            if (!foundUser) {
                 return res.status(400).send('Invalid User ID or password');
             }
-            if (user.userType !== 'admin') {
+            if (foundUser.userType !== 'admin') {
                 return res.status(400).send('User ID login allowed only for admin users');
             }
         }
         // Try to find user by emailId (for client)
         else if (emailId) {
-            user = await usermanagement.findOne({ emailId });
-            if (!user) {
+            foundUser = await UserModel.findOne({ emailId });
+            if (!foundUser) {
                 return res.status(400).send('Invalid Email ID or password');
             }
-            if (user.userType !== 'user') {
+            if (foundUser.userType !== 'user') {
                 return res.status(400).send('Email login allowed only for client users');
             }
         } else {
@@ -37,12 +37,12 @@ router.post('/', async (req, res) => {
         }
 
         // Compare the plain password with the hashed password in DB
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, foundUser.password);
         if (!isMatch) {
             return res.status(400).send('Invalid credentials');
         }
 
-        const token = jwt.sign({ u_id: user.userId, email: user.emailId, role: user.userType }, jwtSecret, { expiresIn: '30m' });
+        const token = jwt.sign({ u_id: foundUser.userId, email: foundUser.emailId, role: foundUser.userType }, jwtSecret, { expiresIn: '30m' });
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -54,11 +54,11 @@ router.post('/', async (req, res) => {
             success: true,
             message: "vaild user",
             user: {
-                userId: user.userId,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                emailId: user.emailId,
-                userType: user.userType
+                userId: foundUser.userId,
+                firstName: foundUser.firstName,
+                lastName: foundUser.lastName,
+                emailId: foundUser.emailId,
+                userType: foundUser.userType
             }
         });
 

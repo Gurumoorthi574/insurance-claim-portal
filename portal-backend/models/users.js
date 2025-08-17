@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
-const usermanagementSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
@@ -35,29 +35,27 @@ const usermanagementSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    resetPasswordToken: {
+    passwordResetToken: {
         type: String
     },
-    resetPasswordExpires: {
+    passwordResetExpires: {
         type: Date
     }
 }, { timestamps: true });
 
-// Method to generate and hash password reset token
-usermanagementSchema.methods.getResetPasswordToken = function() {
-    // Generate token
-    const resetToken = crypto.randomBytes(20).toString('hex');
+userSchema.methods.getResetPasswordToken = function() {
 
-    // Hash token and set to resetPasswordToken field
-    this.resetPasswordToken = crypto
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    this.passwordResetToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
 
-    // Set expire time (e.g., 15 minutes)
-    this.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    
+    this.passwordResetExpires = Date.now() + 5 * 60 * 1000;
 
     return resetToken;
 };
 
-module.exports = mongoose.model('usermanagement', usermanagementSchema);
+module.exports = mongoose.model('users', userSchema);

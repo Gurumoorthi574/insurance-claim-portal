@@ -19,6 +19,7 @@ var dashboardRouter = require('./routes/fetch/dashboard');
 var claimRouter = require('./routes/fetch/claim');
 var claimHistoryRouter = require('./routes/fetch/claim_history');
 var tokenVerifyRouter = require('./routes/token_verify');
+var passwordResetRouter = require('./routes/passwordReset');
 
 
 
@@ -53,6 +54,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/users', usersRouter);
 app.use('/api/auth', tokenVerifyRouter);
 app.use('/api/auth/login', loginRouter);
+app.use('/api/auth', passwordResetRouter);
 app.use('/api/auth/signup', signupRouter);
 app.use('/api/saveData', saveDataRouter);
 app.use('/api/fetch/claim_status', claimStatusRouter);
