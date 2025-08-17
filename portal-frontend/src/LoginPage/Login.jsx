@@ -48,13 +48,13 @@ const Login = () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     try {
       // Choose payload and endpoint based on loginType
-      let payload, endpoint;
+      let payload;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+      const endpoint = `${apiBaseUrl}/auth/login`;
       if (loginType === 'admin') {
         payload = { userId: loginForm.userId, password: loginForm.password };
-        endpoint = 'http://localhost:3000/api/auth/login';
       } else {
         payload = { emailId: loginForm.emailId, password: loginForm.password };
-        endpoint = 'http://localhost:3000/api/auth/login';
       }
       const response = await axios.post(endpoint, payload, {
         withCredentials: true,
@@ -177,12 +177,14 @@ const Login = () => {
                 />
               </>
             )}
-            <div className="text-left">
-              <a href="#" className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-[0.625rem] block">
-                Forgot password?
-              </a>
-            </div>
-            <div className="flex justify-center items-center mt-6">
+            <button
+              type="button"
+              onClick={() => navigate('/forgot')}
+              className="relative z-50 block text-left text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
+            >
+              Forgot password?
+            </button>
+            <div className="flex justify-center items-center">
               <Button
                 type="submit"
                 className={`py-3 px-8 bg-slate-100 text-cyan-600 font-semibold rounded-xl shadow-[6px_6px_12px_#cbd5e1,_-6px_-6px_12px_#ffffff] hover:shadow-[4px_4px_8px_#cbd5e1,_-4px_-4px_8px_#ffffff] active:shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff] active:text-cyan-700 transition-all duration-150 ease-in-out ${

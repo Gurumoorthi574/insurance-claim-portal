@@ -5,6 +5,8 @@ import Dashboard from '../FormComponent/Dashboard';
 import { InsuranceStepper } from '../Stepper/claim_stepper';
 import ClaimHistory from '../History/ClaimHistory';
 import { tokenVerificationLoader } from '../AuthVerification/authloader';
+import ForgotPassword from '../LoginPage/ForgotPassword';
+import ResetPassword from '../LoginPage/ResetPassword';
 
 const router = createBrowserRouter([
   {
@@ -18,6 +20,14 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     Component: Signup
+  },
+  {
+    path: "/forgot",
+    Component: ForgotPassword
+  },
+  {
+    path: "/reset-password/:token",
+    Component: ResetPassword
   },
   {
     path: "/dashboard",

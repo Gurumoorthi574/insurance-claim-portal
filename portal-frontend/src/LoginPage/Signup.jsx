@@ -1,38 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-
-// Notification component for top-right popup
-const Notification = ({ message, onClose }) => {
-  if (!message) return null;
-  return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded shadow-lg flex items-center animate-slide-in">
-      <span>{message}</span>
-      <button
-        className="ml-4 text-white font-bold"
-        onClick={onClose}
-        aria-label="Close"
-      >
-        ×
-      </button>
-    </div>
-  );
-};
 
 const Signup = () => {
   const [signupForm, setSignupForm] = useState({
     firstName: '',
     lastName: '',
-    email: '',
+    emailId: '',
     userId: '',
     userType: '',
     password: '',
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
@@ -49,48 +31,49 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setSuccess('');
     setLoading(true);
 
     try {
-      let signin ='http://localhost:3000/api/auth/signup'
-      const response = await axios.post(signin, signupForm);
-      if (response.status === 201) {
-        toast.setSuccess('Successfully Register! Please log in.')
-        if (response.data === 'Success') {
-          // localStorage.setItem('u_type',userType)
-          navigate('/login');
-        }
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+      const signupEndpoint = `${apiBaseUrl}/auth/signup`;
+      const response = await axios.post(signupEndpoint, signupForm);
+      if (response.data.success) {
+        toast.success('Successfully Register! Please log in.');
+        navigate('/login');
         setSignupForm({
           firstName: '',
           lastName: '',
           emailId: '',
+          userId: '',
+          userType: '',
           password: '',
           confirmPassword: ''
         });
       } else {
-        setError(response.data.message);
+        toast.error(response.data.message || "An unknown error occurred.");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Please enter the required fields");
+      toast.error(err.response?.data?.message || "Please enter the required fields");
     } finally {
       setLoading(false);
     }
   };
 
-  
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-100">
-      {/* Notification Popup */}
-      <Notification message={error} onClose={() => setError('')} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          success: {
+            style: {
+              background: '#22c55e',
+              color: 'white',
+            },
+          },
+          error: { style: { background: '#dc2626', color: 'white' } },
+        }}
+      />
 
       {/* Left Image Side */}
       <div className="md:w-1/2 hidden md:block">
@@ -139,7 +122,7 @@ const Signup = () => {
             />
             <input
               type="text"
-              name="userid"
+              name="userId"
               placeholder='NT ID'
               className="w-full px-4 py-3 bg-slate-100 border-transparent rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-[inset_4px_4px_8px_#cbd5e1,_inset_-4px_-4px_8px_#ffffff]"
               value={signupForm.userId}
