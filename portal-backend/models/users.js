@@ -40,6 +40,14 @@ const userSchema = new mongoose.Schema({
     },
     passwordResetExpires: {
         type: Date
+    },
+    reseted_status: {
+        type: Number,
+        default: 0
+    },
+    reset_count: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

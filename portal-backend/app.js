@@ -23,6 +23,7 @@ var passwordResetRouter = require('./routes/passwordReset');
 
 
 
+
 var app = express();
 
 const corsOptions = {
@@ -62,6 +63,7 @@ app.use('/api/fetch/dashboard', dashboardRouter);
 app.use('/api/fetch/claim', claimRouter);
 // app.use('/api/fetch/claim/by-policy', claimRouter);
 app.use('/api/fetch/claim-history', claimHistoryRouter);
+
 
 
 // catch 404 and forward to error handler
